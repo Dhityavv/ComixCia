@@ -40,6 +40,7 @@ import { ComicDetailModal } from '@/components/ComicDetailModal';
 import { ComicReader } from '@/components/ComicReader';
 import { ExtensionsView } from '@/components/ExtensionsView';
 import { ScrollRevealTitle } from '@/components/ScrollRevealTitle';
+import type { AlternativeSourceMatch } from '@/app/api/alternatives/route';
 
 type NavTab = 'home' | 'library' | 'extensions' | 'profile';
 
@@ -84,6 +85,8 @@ export function ComixCiaApp() {
   const [comicDetail, setComicDetail] = useState<ComicDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [alternatives, setAlternatives] = useState<AlternativeSourceMatch[]>([]);
+  const [alternativesLoading, setAlternativesLoading] = useState(false);
 
   const [activeChapter, setActiveChapter] = useState<ChapterSummary | null>(null);
   const [chapterPages, setChapterPages] = useState<ChapterPages | null>(null);
@@ -230,8 +233,31 @@ export function ComixCiaApp() {
     setComicDetail(null);
     setDetailError(null);
     setDetailLoading(true);
+    setAlternatives([]);
+    setAlternativesLoading(true);
+
+    const customManifest = store.customExtensions.find((c) => c.id === summary.sourceId);
+
+    // Fetch alternative sources in parallel (non-blocking)
+    fetch('/api/alternatives', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: summary.title,
+        currentSourceId: summary.sourceId,
+        sourceIds: store.activeExtensionIds,
+        customExtensions: store.customExtensions,
+        baseUrlOverrides: store.baseUrlOverrides,
+      }),
+    })
+      .then((r) => r.json())
+      .then((json: { alternatives?: AlternativeSourceMatch[] }) => {
+        if (json.alternatives) setAlternatives(json.alternatives);
+      })
+      .catch(() => {})
+      .finally(() => setAlternativesLoading(false));
+
     try {
-      const customManifest = store.customExtensions.find((c) => c.id === summary.sourceId);
       const res = await fetch('/api/comic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -417,6 +443,9 @@ export function ComixCiaApp() {
                     l.comic.url === selectedSummary.url
                 )?.lastReadChapterId
               }
+              alternatives={alternatives}
+              alternativesLoading={alternativesLoading}
+              onSwitchSource={handleOpenComic}
               onToggleLibrary={store.toggleLibrary}
               onChangeLibraryCategory={store.setLibraryCategory}
               onReadChapter={handleReadChapter}

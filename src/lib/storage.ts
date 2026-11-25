@@ -12,12 +12,12 @@ import type {
 } from '@/lib/types';
 
 export const DEFAULT_PREINSTALLED_IDS = [
-  'mangadex',
-  'webtoon',
-  'komiku',
   'kiryuu',
-  'luvyaa',
+  'webtoon',
   'maid',
+  'komiku',
+  'luvyaa',
+  'mangadex',
 ];
 
 const DEFAULT_CATEGORIES: Category[] = [
@@ -51,7 +51,7 @@ export interface ComixStoreData {
   readingSettings: ReadingSettings;
 }
 
-const STORAGE_KEY = 'comixcia_store_v7';
+const STORAGE_KEY = 'comixcia_store_v8';
 
 function getInitialData(): ComixStoreData {
   return {

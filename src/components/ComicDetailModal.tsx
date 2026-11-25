@@ -10,10 +10,13 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  Layers,
+  Loader2,
   Play,
   Search,
 } from 'lucide-react';
 import type { Category, ChapterSummary, ComicDetail, ComicSummary } from '@/lib/types';
+import type { AlternativeSourceMatch } from '@/app/api/alternatives/route';
 import { getProxiedImageUrl } from '@/lib/storage';
 import { ScrollRevealTitle } from '@/components/ScrollRevealTitle';
 import { applyAdaptiveTheme, extractThemeFromImage } from '@/lib/adaptive-theme';
@@ -27,6 +30,9 @@ interface ComicDetailModalProps {
   categories: Category[];
   currentCategoryId?: string;
   lastReadChapterId?: string;
+  alternatives?: AlternativeSourceMatch[];
+  alternativesLoading?: boolean;
+  onSwitchSource?: (comic: ComicSummary) => void;
   onToggleLibrary: (comic: ComicSummary, categoryIds?: string[]) => void;
   onChangeLibraryCategory?: (sourceId: string, url: string, categoryId: string) => void;
   onReadChapter: (detail: ComicDetail, chapter: ChapterSummary) => void;
@@ -42,6 +48,9 @@ export function ComicDetailModal({
   categories,
   currentCategoryId,
   lastReadChapterId,
+  alternatives = [],
+  alternativesLoading = false,
+  onSwitchSource,
   onToggleLibrary,
   onChangeLibraryCategory,
   onReadChapter,
@@ -277,6 +286,60 @@ export function ComicDetailModal({
               )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Multi-Source Switcher */}
+      <section className="rounded-2xl border border-[#303039] bg-[#19191f] p-4 space-y-3" aria-label="Pindah Sumber Komik">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#f5f4f2]">
+            <Layers className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+            <span>Sumber Komik</span>
+          </div>
+          {alternativesLoading ? (
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-[#a3a3aa]">
+              <Loader2 className="h-3 w-3 animate-spin text-[var(--accent)]" aria-hidden="true" />
+              Mengecek kelengkapan chapter di sumber lain...
+            </span>
+          ) : (() => {
+            const currentCount = detail?.chapters.length ?? 0;
+            const bestAlt = alternatives[0];
+            if (bestAlt && bestAlt.chapterCount > currentCount && onSwitchSource) {
+              return (
+                <button
+                  type="button"
+                  onClick={() => onSwitchSource(bestAlt.comic)}
+                  className="text-[11px] font-medium text-[var(--accent)] hover:underline"
+                >
+                  Lebih lengkap di {bestAlt.sourceName} ({bestAlt.chapterCount} Ch) — Klik untuk pindah
+                </button>
+              );
+            }
+            return null;
+          })()}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 h-9 rounded-xl border border-[var(--accent)] bg-[var(--accent-soft)] px-3 text-xs font-semibold text-[#f5f4f2]">
+            <span>{active.sourceName || active.sourceId}</span>
+            <span className="font-mono text-[11px] text-[var(--accent)] tabular-nums">
+              ({detail?.chapters.length ?? 0} Ch)
+            </span>
+          </span>
+
+          {alternatives.map((alt) => (
+            <button
+              key={alt.sourceId}
+              type="button"
+              onClick={() => onSwitchSource?.(alt.comic)}
+              className="inline-flex items-center gap-1.5 h-9 rounded-xl border border-[#303039] bg-[#111114] hover:border-[var(--accent)] px-3 text-xs font-medium text-[#f5f4f2] transition-colors"
+            >
+              <span>{alt.sourceName}</span>
+              <span className="font-mono text-[11px] text-[#a3a3aa] tabular-nums">
+                ({alt.chapterCount} Ch)
+              </span>
+            </button>
+          ))}
         </div>
       </section>
 
