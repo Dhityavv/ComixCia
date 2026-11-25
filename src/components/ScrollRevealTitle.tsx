@@ -40,23 +40,42 @@ export function ScrollRevealTitle({
           return;
         }
 
-        gsap.fromTo(
-          wordEls,
-          { yPercent: 100, autoAlpha: 0 },
-          {
-            yPercent: 0,
-            autoAlpha: 1,
-            duration: 0.55,
-            ease: 'power3.out',
-            stagger: 0.045,
-            clearProps: 'transform',
-            scrollTrigger: {
-              trigger: el,
-              start: 'top 92%',
-              once: true,
-            },
-          }
-        );
+        const rect = el.getBoundingClientRect();
+        const alreadyInView = rect.top < window.innerHeight * 0.96;
+
+        if (alreadyInView) {
+          gsap.fromTo(
+            wordEls,
+            { yPercent: 100, autoAlpha: 0 },
+            {
+              yPercent: 0,
+              autoAlpha: 1,
+              duration: 0.45,
+              ease: 'power3.out',
+              stagger: 0.04,
+              clearProps: 'transform',
+            }
+          );
+        } else {
+          gsap.fromTo(
+            wordEls,
+            { yPercent: 100, autoAlpha: 0 },
+            {
+              yPercent: 0,
+              autoAlpha: 1,
+              duration: 0.45,
+              ease: 'power3.out',
+              stagger: 0.04,
+              clearProps: 'transform',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 95%',
+                once: true,
+              },
+            }
+          );
+          ScrollTrigger.refresh();
+        }
       }
     );
 
@@ -70,8 +89,11 @@ export function ScrollRevealTitle({
   return (
     <Tag ref={containerRef} className={className}>
       {words.map((word, idx) => (
-        <span key={`${word}-${idx}`} className="inline-block overflow-hidden align-bottom mr-[0.26em] last:mr-0">
-          <span className="sr-word inline-block will-change-transform">{word}</span>
+        <span
+          key={`${word}-${idx}`}
+          className="inline-block overflow-hidden align-bottom mr-[0.26em] last:mr-0"
+        >
+          <span className="sr-word inline-block">{word}</span>
         </span>
       ))}
     </Tag>

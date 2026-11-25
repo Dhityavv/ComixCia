@@ -125,7 +125,8 @@ export function ComixCiaApp() {
     ) => {
       if (!store.hydrated) return;
       const effectiveMode = modeOverride || browseMode;
-      const effectiveQuery = queryOverride ?? searchQuery;
+      const rawQuery = queryOverride ?? searchQuery;
+      const effectiveQuery = rawQuery.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
       const effectiveGenre = genreOverride ?? genreFilter;
 
       const targetSources =
@@ -764,7 +765,9 @@ export function ComixCiaApp() {
                             </div>
                             {group.error ? (
                               <div className="rounded-xl border border-[#303039] bg-[#19191f] p-4 text-xs text-[#a3a3aa]">
-                                {group.sourceName}: {group.error}
+                                {group.error.includes('403')
+                                  ? `${group.sourceName} membatasi akses dari server cloud (HTTP 403). Gunakan sumber lain seperti MangaDex ID, LINE Webtoon ID, atau Kiryuu.`
+                                  : `${group.sourceName}: ${group.error}`}
                               </div>
                             ) : group.items.length === 0 ? (
                               <div className="rounded-xl border border-[#303039] bg-[#19191f] p-4 text-xs text-[#a3a3aa]">
