@@ -76,7 +76,7 @@ function ReaderPageImage({ src, alt, className, eager, onEnter }: ReaderPageImag
   }
 
   return (
-    <div className="relative w-full flex justify-center">
+    <div className="relative w-full flex justify-center [content-visibility:auto] [contain-intrinsic-size:auto_640px]">
       {status === 'loading' && (
         <div
           className={`${className} min-h-[360px] bg-[#19191f] animate-pulse`}
@@ -154,31 +154,16 @@ export function ComicReader({
     }
   }, [loading, chapter.id]);
 
-  // Background preloader (3 concurrent)
+  // Selective preloader: only 5 pages ahead to save RAM on low-end devices
   useEffect(() => {
     if (!pages.length) return;
-    let cancelled = false;
-    let cursor = 0;
-
-    const loadNext = () => {
-      if (cancelled || cursor >= pages.length) return;
-      const idx = cursor++;
+    const upcoming = pages.slice(currentPage + 1, currentPage + 6);
+    upcoming.forEach((src) => {
       const img = new Image();
       img.decoding = 'async';
-      img.onload = loadNext;
-      img.onerror = loadNext;
-      img.src = getProxiedImageUrl(pages[idx], chapterData?.referer);
-    };
-
-    const workers = Math.min(3, pages.length);
-    for (let i = 0; i < workers; i++) {
-      loadNext();
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [pages, chapterData?.referer]);
+      img.src = getProxiedImageUrl(src, chapterData?.referer);
+    });
+  }, [currentPage, pages, chapterData?.referer]);
 
   // Prefetch next chapter
   useEffect(() => {
@@ -264,7 +249,7 @@ export function ComicReader({
     >
       {/* Top Minimal Header */}
       <header
-        className={`fixed top-0 inset-x-0 z-30 flex items-center justify-between gap-3 px-4 py-2.5 bg-[#111114]/95 backdrop-blur-md border-b border-[#303039] transition-transform duration-200 ${
+        className={`fixed top-0 inset-x-0 z-30 flex items-center justify-between gap-3 px-4 py-2.5 bg-[#111114]/95 border-b border-[#303039] transition-transform duration-200 ${
           showToolbar ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -378,7 +363,10 @@ export function ComicReader({
                 src={getProxiedImageUrl(src, chapterData?.referer)}
                 alt={`Halaman ${idx + 1}`}
                 eager={idx < 8}
-                onEnter={() => onProgress(idx, totalPages)}
+                onEnter={() => {
+                  setCurrentPage(idx);
+                  onProgress(idx, totalPages);
+                }}
                 className={fitClass}
               />
             ))}
@@ -466,7 +454,7 @@ export function ComicReader({
 
       {/* Bottom Toolbar */}
       <footer
-        className={`fixed bottom-0 inset-x-0 z-30 bg-[#111114]/95 backdrop-blur-md border-t border-[#303039] px-4 py-2.5 transition-transform duration-200 ${
+        className={`fixed bottom-0 inset-x-0 z-30 bg-[#111114]/95 border-t border-[#303039] px-4 py-2.5 transition-transform duration-200 ${
           showToolbar ? 'translate-y-0' : 'translate-y-full'
         }`}
       >

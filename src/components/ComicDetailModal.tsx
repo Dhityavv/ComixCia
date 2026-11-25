@@ -121,7 +121,7 @@ export function ComicDetailModal({
         {coverSrc && (
           <div
             aria-hidden="true"
-            className="absolute inset-0 opacity-20 blur-2xl scale-110 pointer-events-none"
+            className="absolute inset-0 opacity-20 pointer-events-none"
             style={{
               backgroundImage: `url(${coverSrc})`,
               backgroundSize: 'cover',
@@ -131,7 +131,7 @@ export function ComicDetailModal({
         )}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-[#111114] via-[#111114]/80 to-[#111114]/60 pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-t from-[#111114] via-[#111114]/90 to-[#111114]/70 pointer-events-none"
         />
 
         <div className="relative z-10 flex flex-col sm:flex-row gap-6 sm:gap-8">

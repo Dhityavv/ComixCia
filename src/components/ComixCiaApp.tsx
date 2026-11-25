@@ -144,27 +144,38 @@ export function ComixCiaApp() {
 
       setSearching(true);
       try {
-        const res = await fetch('/api/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mode: effectiveMode,
-            query: effectiveQuery,
-            sourceIds: targetSources,
-            filters: {
-              type: typeFilter,
-              status: statusFilter,
-              genre: effectiveGenre || undefined,
-              lang: 'id',
-              page: 1,
-            },
-            customExtensions: store.customExtensions,
-            baseUrlOverrides: store.baseUrlOverrides,
-          }),
-        });
-        const json = (await res.json()) as { results?: SourceSearchResult[] };
-        if (json.results) {
-          setSearchResults(json.results);
+        const fetchBatch = async (batchSources: string[]) => {
+          const res = await fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mode: effectiveMode,
+              query: effectiveQuery,
+              sourceIds: batchSources,
+              filters: {
+                type: typeFilter,
+                status: statusFilter,
+                genre: effectiveGenre || undefined,
+                lang: 'id',
+                page: 1,
+              },
+              customExtensions: store.customExtensions,
+              baseUrlOverrides: store.baseUrlOverrides,
+            }),
+          });
+          const json = (await res.json()) as { results?: SourceSearchResult[] };
+          return json.results || [];
+        };
+
+        if (targetSources.length > 3) {
+          const firstBatch = await fetchBatch(targetSources.slice(0, 3));
+          setSearchResults(firstBatch);
+          setSearching(false);
+          const restBatch = await fetchBatch(targetSources.slice(3));
+          setSearchResults([...firstBatch, ...restBatch]);
+        } else {
+          const allBatch = await fetchBatch(targetSources);
+          setSearchResults(allBatch);
         }
       } catch {
         // handled in UI
@@ -338,7 +349,7 @@ export function ComixCiaApp() {
   return (
     <div className="min-h-screen bg-[#111114] text-[#f5f4f2] flex flex-col">
       {/* Desktop Top Navigation (Premium Editorial) */}
-      <header className="sticky top-0 z-30 border-b border-[#303039] bg-[#111114]/95 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-[#303039] bg-[#111114]/98">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <button
@@ -461,7 +472,7 @@ export function ComixCiaApp() {
                     <section className="relative overflow-hidden rounded-2xl border border-[#303039] bg-[#19191f] p-6 sm:p-10 min-h-[320px] flex items-end">
                       <div
                         aria-hidden="true"
-                        className="absolute inset-0 opacity-30 blur-xl scale-105 transition-all duration-500"
+                        className="absolute inset-0 opacity-25 pointer-events-none"
                         style={{
                           backgroundImage: `url(${getProxiedImageUrl(featuredComic.coverUrl)})`,
                           backgroundSize: 'cover',
@@ -470,7 +481,7 @@ export function ComixCiaApp() {
                       />
                       <div
                         aria-hidden="true"
-                        className="absolute inset-0 bg-gradient-to-r from-[#111114] via-[#111114]/85 to-transparent"
+                        className="absolute inset-0 bg-gradient-to-r from-[#111114] via-[#111114]/90 to-[#111114]/60 pointer-events-none"
                       />
 
                       <div className="relative z-10 w-full flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
@@ -1104,7 +1115,7 @@ export function ComixCiaApp() {
       {/* Mobile Bottom Navigation */}
       <nav
         aria-label="Navigasi mobile"
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-[#303039] bg-[#111114]/95 backdrop-blur-md flex justify-around py-1.5"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-[#303039] bg-[#111114]/98 flex justify-around py-1.5"
       >
         {navItems.slice(0, 5).map((item) => {
           const Icon = item.icon;

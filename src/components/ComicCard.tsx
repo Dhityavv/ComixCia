@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
 import { Bookmark, BookOpen } from 'lucide-react';
 import type { ComicSummary } from '@/lib/types';
 import { getProxiedImageUrl } from '@/lib/storage';
@@ -15,15 +14,10 @@ interface ComicCardProps {
 
 export function ComicCard({ comic, inLibrary, onSelect, onToggleBookmark }: ComicCardProps) {
   const coverSrc = getProxiedImageUrl(comic.coverUrl);
-  const shouldReduceMotion = useReducedMotion();
   const [isLandscape, setIsLandscape] = useState(false);
 
   return (
-    <motion.div
-      whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative flex flex-col rounded-xl overflow-hidden bg-[#19191f] border border-[#303039] hover:border-[var(--accent)] transition-colors duration-200 shadow-sm"
-    >
+    <div className="group relative flex flex-col rounded-xl overflow-hidden bg-[#19191f] border border-[#303039] hover:border-[var(--accent)] hover:-translate-y-0.5 transition-[transform,border-color] duration-150">
       <button
         type="button"
         onClick={() => onSelect(comic)}
@@ -47,7 +41,7 @@ export function ComicCard({ comic, inLibrary, onSelect, onToggleBookmark }: Comi
               className={`transition-transform duration-200 ${
                 isLandscape
                   ? 'max-h-full max-w-full w-full h-auto object-contain'
-                  : 'h-full w-full object-cover group-hover:scale-[1.03]'
+                  : 'h-full w-full object-cover group-hover:scale-[1.02]'
               }`}
             />
           ) : (
@@ -56,16 +50,16 @@ export function ComicCard({ comic, inLibrary, onSelect, onToggleBookmark }: Comi
             </div>
           )}
 
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#111114]/90 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#111114]/90 to-transparent pointer-events-none" />
 
           {comic.type !== 'unknown' && (
-            <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-[#111114]/85 border border-[#303039] text-[10px] font-semibold uppercase tracking-wide text-[#f5f4f2]">
+            <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-[#111114]/90 border border-[#303039] text-[10px] font-semibold uppercase tracking-wide text-[#f5f4f2]">
               {comic.type}
             </span>
           )}
 
           {comic.latestChapter && (
-            <span className="absolute bottom-2 left-2.5 px-2 py-0.5 rounded-md bg-[#111114]/85 border border-[#303039] text-[10px] font-medium text-[#f5f4f2] tabular-nums max-w-[85%] truncate">
+            <span className="absolute bottom-2 left-2.5 px-2 py-0.5 rounded-md bg-[#111114]/90 border border-[#303039] text-[10px] font-medium text-[#f5f4f2] tabular-nums max-w-[85%] truncate">
               {comic.latestChapter}
             </span>
           )}
@@ -94,15 +88,15 @@ export function ComicCard({ comic, inLibrary, onSelect, onToggleBookmark }: Comi
             onToggleBookmark(comic);
           }}
           aria-label={inLibrary ? `Hapus ${comic.title} dari Koleksi` : `Simpan ${comic.title} ke Koleksi`}
-          className={`absolute top-2.5 right-2.5 rounded-lg p-1.5 border transition-all duration-200 ${
+          className={`absolute top-2.5 right-2.5 rounded-lg p-1.5 border transition-colors duration-150 ${
             inLibrary
               ? 'bg-[var(--accent)] border-[var(--accent)] text-[#111114] opacity-100'
-              : 'bg-[#111114]/80 border-[#303039] text-[#f5f4f2] opacity-0 group-hover:opacity-100 focus:opacity-100'
+              : 'bg-[#111114]/85 border-[#303039] text-[#f5f4f2] opacity-0 group-hover:opacity-100 focus:opacity-100'
           }`}
         >
           <Bookmark className={`h-3.5 w-3.5 ${inLibrary ? 'fill-current' : ''}`} aria-hidden="true" />
         </button>
       )}
-    </motion.div>
+    </div>
   );
 }
